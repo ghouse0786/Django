@@ -1,0 +1,110 @@
+PYTHON
+# models.py
+from django.db import models
+
+class Person(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    age = models.IntegerField()
+    email = models.EmailField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+ 
+ //This code defines a simple Person model with fields for first name, last name, age, and email. The __str__ method is used to display a string representation of the object in the Django admin interface.
+ 
+ 
+ 
+ PYTHON
+ # views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Person
+from .forms import PersonForm
+
+def person_list(request):
+    people = Person.objects.all()
+    return render(request, 'person_list.html', {'people': people})
+
+def person_detail(request, pk):
+    person = get_object_or_404(Person, pk=pk)
+    return render(request, 'person_detail.html', {'person': person})
+
+def person_create(request):
+    if request.method == 'POST':
+        form = PersonForm(request.POST)
+        if form.is_valid():
+            person = form.save()
+            return redirect('person_detail', pk=person.pk)
+    else:
+        form = PersonForm()
+    return render(request, 'person_form.html', {'form': form})
+
+def person_update(request, pk):
+    person = get_object_or_404(Person, pk=pk)
+    if request.method == 'POST':
+        form = PersonForm(request.POST, instance=person)
+        if form.is_valid():
+            form.save()
+            return redirect('person_detail', pk=person.pk)
+    else:
+        form = PersonForm(instance=person)
+    return render(request, 'person_form.html', {'form': form})
+
+def person_delete(request, pk):
+    person = get_object_or_404(Person, pk=pk)
+    if request.method == 'POST':
+        person.delete()
+        return redirect('person_list')
+    return render(request, 'person_confirm_delete.html', {'person': person})
+
+
+
+
+
+This code defines several views for the person tracking system:
+
+person_list: Displays a list of all people in the system
+person_detail: Displays detailed information about a specific person
+person_create: Allows the creation of a new person record
+person_update: Allows updating an existing person record
+person_delete: Allows deletion of an existing person record
+
+
+
+PYTHON
+# forms.py
+from django import forms
+from .models import Person
+
+class PersonForm(forms.ModelForm):
+
+    class Meta:
+        model = Person
+        fields = ('first_name', 'last_name', 'age', 'email')
+
+
+
+This code defines a simple PersonForm form that uses the Person model. The form includes fields for first name, last name, age, and email.
+
+
+
+
+
+
+HTML
+
+<!-- person_list.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>People</h1>
+  <ul>
+  {% for person in people %}
+    <li><a href="{% url 'person_detail' pk=person.pk %}">{{ person }}</a></li>
+  {% endfor %}
+  </ul>
+  <a href="{% url 'person_create' %}">Add Person</a>
+{% endblock %}
+
+
+This is a simple template that displays a list of all people in the system. Each person's name is linked to their detailed information page. There is also a link to add a new person.
